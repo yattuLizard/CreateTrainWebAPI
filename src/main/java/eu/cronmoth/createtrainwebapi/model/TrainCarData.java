@@ -12,16 +12,23 @@ public class TrainCarData {
     public int id;
     public double positionOnTrack;
     public String assemblyDirection;
-    //public double length;
-    public NodeData node1;
-    public NodeData node2;
+
+    public int node1;
+    public int node2;
+
+    public double trailingPositionOnTrack;
+    public int node3;
+    public int node4;
 
     public TrainCarData(Carriage carriage) {
         id = carriage.id;
         positionOnTrack = carriage.getLeadingPoint().position;
-        //length =  carriage.getLeadingPoint().position - positionOnTrack;
-        node1= new NodeData(carriage.getLeadingPoint().node1);
-        node2= new NodeData(carriage.getLeadingPoint().node2);
+        node1= carriage.getLeadingPoint().node1.getNetId();
+        node2= carriage.getLeadingPoint().node2.getNetId();
+
+        trailingPositionOnTrack = carriage.getTrailingPoint().position;
+        node3= carriage.getTrailingPoint().node1.getNetId();
+        node4= carriage.getTrailingPoint().node2.getNetId();
 
         try {
             Field f = Carriage.class.getDeclaredField("serialisedEntity");
