@@ -16,6 +16,9 @@ public class Config {
     public static final ModConfigSpec.ConfigValue<String> SERVER_HOST = BUILDER
             .comment("Webserver hostname")
             .define("serverHost", "0.0.0.0");
+    public static final ModConfigSpec.ConfigValue<String> TRAIN_MODEL_PATH = BUILDER
+            .comment("Path of the train models")
+            .define("trainModelPath", "bluemap/train_models/");
 
     static final ModConfigSpec SPEC = BUILDER.build();
 

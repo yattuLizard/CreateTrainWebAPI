@@ -22,7 +22,7 @@ public class ApiServer {
     private Undertow server;
     private ObjectMapper mapper = new ObjectMapper();
 
-    public void start(String host, int port) {
+    public void start(String host, int port, String trainModelPath) {
         PathHandler pathHandler = new PathHandler();
         // HTTP GET
         pathHandler.addExactPath("/trains", exchange -> {
@@ -61,9 +61,9 @@ public class ApiServer {
                     ).handleRequest(exchange);
                 }
         );
-
-        if (new File("bluemap/train_models/").exists()) {
-            FileResourceManager resourceManager = new FileResourceManager(new File("bluemap/train_models/"), 100);
+        File trainModelsDir = new File(trainModelPath);
+        if (trainModelsDir.exists()) {
+            FileResourceManager resourceManager = new FileResourceManager(trainModelsDir, 100);
             ResourceHandler resourceHandler = new ResourceHandler(resourceManager)
                     .setDirectoryListingEnabled(false);
             HttpHandler trainModelHandler = exchange -> {
