@@ -1,25 +1,16 @@
 
-Installation information
-=======
+This mod adds an endpoint for the postion data of the create trains. At the moment it is compatible with Neoforge 1.21.1. To install simply place the jar file into the mods folder. By default it uses port 8080, this can be changed in the config file. 
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+When used together with https://github.com/BeneHenke/BluemapCreateEntityAddon the path to the train models can be configured in the config aswell. To display the trains in Bluemap add https://github.com/BeneHenke/BluemapCreateEntityAddon/blob/BlueMapAddon/bluemap/train.js to the scripts and change the url to your endpoint.
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
-
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
-
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
-
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+Example config:
+```
+#Webserver Port
+# Default: 8080
+# Range: 1 ~ 65535
+serverPort = 8080
+#Webserver hostname
+serverHost = "0.0.0.0"
+#Path of the train models
+trainModelPath = "bluemap/train_models/"
+```
