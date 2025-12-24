@@ -1,28 +1,38 @@
 package eu.cronmoth.createtrainwebapi;
 
-import java.util.List;
-
+import net.minecraft.ResourceLocationException;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
-// An example config class. This is not required, but it's a good idea to have one to keep your config organized.
-// Demonstrates how to use Neo's config APIs
 public class Config {
-    private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
-    public static final ModConfigSpec.IntValue SERVER_PORT = BUILDER
+
+    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+
+    public static final ForgeConfigSpec.IntValue SERVER_PORT = BUILDER
             .comment("Webserver Port")
             .defineInRange("serverPort", 8080, 1, 65535);
-    public static final ModConfigSpec.ConfigValue<String> SERVER_HOST = BUILDER
+
+    public static final ForgeConfigSpec.ConfigValue<String> SERVER_HOST = BUILDER
             .comment("Webserver hostname")
             .define("serverHost", "0.0.0.0");
-    public static final ModConfigSpec.ConfigValue<String> TRAIN_MODEL_PATH = BUILDER
+
+    public static final ForgeConfigSpec.ConfigValue<String> TRAIN_MODEL_PATH = BUILDER
             .comment("Path of the train models")
             .define("trainModelPath", "bluemap/train_models/");
 
-    static final ModConfigSpec SPEC = BUILDER.build();
+    public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     private static boolean validateItemName(final Object obj) {
-        return obj instanceof String itemName && BuiltInRegistries.ITEM.containsKey(ResourceLocation.parse(itemName));
+        if (!(obj instanceof String itemName)) {
+            return false;
+        }
+
+        try {
+            return BuiltInRegistries.ITEM.containsKey(new ResourceLocation(itemName));
+        } catch (ResourceLocationException e) {
+            return false;
+        }
     }
+
 }
