@@ -20,6 +20,7 @@ import java.util.concurrent.ScheduledFuture;
 
 public class ApiServer {
     private Undertow server;
+    private ScheduledExecutorService scheduler;
     private ObjectMapper mapper = new ObjectMapper();
 
     public void start(String host, int port, String trainModelPath) {
@@ -37,7 +38,7 @@ public class ApiServer {
             exchange.getResponseSender().send(mapper.writeValueAsString(TrackInformation.GetNetworkData()));
         });
 
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
+        scheduler = Executors.newScheduledThreadPool(4);
 
         pathHandler.addExactPath("/trainsLive",
                 exchange -> {
@@ -50,6 +51,8 @@ public class ApiServer {
                                         try {
                                             String update = mapper.writeValueAsString(TrackInformation.GetTrainData());
                                             connection.send(update);
+                                        } catch (RejectedExecutionException e) {
+                                            // XNIO worker is shutting down, nothing to do
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
@@ -80,6 +83,11 @@ public class ApiServer {
         server.start();
     }
     public void stop() {
-        server.stop();
+        if (scheduler != null) {
+            scheduler.shutdownNow();
+        }
+        if (server != null) {
+            server.stop();
+        }
     }
 }
