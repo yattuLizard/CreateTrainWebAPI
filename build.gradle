@@ -1,233 +1,144 @@
-import net.neoforged.moddevgradle.dsl.RunModel
-
 plugins {
-    id 'java-library'
-    id 'maven-publish'
-    id 'net.neoforged.moddev.legacyforge' version '2.0.107'
-    id 'idea'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id "fabric-loom" version "1.8.+"
+    id "maven-publish"
+    id "com.github.johnrengelman.shadow" version "8.1.1"
 }
 
-tasks.named('wrapper', Wrapper).configure {
-    // Define wrapper values here so as to not have to always do so when updating gradlew.properties.
-    // Switching this to Wrapper.DistributionType.ALL will download the full gradle sources that comes with
-    // documentation attached on cursor hover of gradle classes and methods. However, this comes with increased
-    // file size for Gradle. If you do switch this to ALL, run the Gradle wrapper task twice afterwards.
-    // (Verify by checking gradle/wrapper/gradle-wrapper.properties to see if distributionUrl now points to `-all`)
-    distributionType = Wrapper.DistributionType.BIN
-}
+base.archivesName = archives_base_name
+group = project.maven_group
 
-version = mod_version
-group = mod_group_id
+String buildNumber = System.getenv("GITHUB_RUN_NUMBER")
+version = "$mod_version+$minecraft_version" + (buildNumber != null ? "-build.$buildNumber" : "")
 
 repositories {
-    maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
-    maven { url = "https://maven.ithundxr.dev/mirror" } // Registrate
-    maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // ForgeConfigAPIPort
+    maven { url = "https://maven.parchmentmc.org" }
+
+    maven { url = "https://mvn.devos.one/releases" }
+    maven { url = "https://mvn.devos.one/snapshots" }
+    maven { url = "https://modmaven.dev/" }
+    maven { url = "https://maven.jamieswhiteshirt.com/libs-release" }
+    maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven" }
+
+    maven {
+        url = "https://jitpack.io/"
+        content { includeGroupAndSubgroups("com.github") }
+    }
+
+    maven { url = "https://maven.shedaniel.me" }
+    maven { url = "https://maven.blamejared.com" }
+    maven { url = "https://maven.terraformersmc.com/releases" }
+    maven { url = "https://maven.createmod.net" }
+    maven { url = "https://maven.engine-room.dev/releases" }
+
     mavenCentral()
 }
 
-base {
-    archivesName = mod_id
-}
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-
-legacyForge {
-    // Specify the version of NeoForge to use.
-    version = "$minecraft_version-$forge_version"
-
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
-    }
-
-    // This line is optional. Access Transformers are automatically detected
-    // accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
-
-    // Default run configurations.
-    // These can be tweaked, removed, or duplicated as needed.
-    runs {
-        client {
-            client()
-            // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-        }
-
-        server {
-            server()
-            programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-        }
-
-        // This run config launches GameTestServer and runs all registered gametests, then exits.
-        // By default, the server will crash when no gametests are provided.
-        // The gametest system is also enabled by default for other run configs under the /test command.
-        gameTestServer {
-            type = "gameTestServer"
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-        }
-
-        data {
-            data()
-
-            // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
-            // gameDirectory = project.file('run-data')
-
-            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
-        }
-
-        // applies to all the run configs above
-        configureEach {
-            // Recommended logging data for a userdev environment
-            // The markers can be added/remove as needed separated by commas.
-            // "SCAN": For mods scan.
-            // "REGISTRIES": For firing of registry events.
-            // "REGISTRYDUMP": For getting the contents of all registries.
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-
-            // Recommended logging level for the console
-            // You can set various levels here.
-            // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            logLevel = org.slf4j.event.Level.DEBUG
-        }
-    }
-
-    mods {
-        // define mod <-> source bindings
-        // these are used to tell the game which sources are for which mod
-        // multi mod projects should define one per mod
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
-        }
-    }
-}
-
-// Include resources generated by data generators.
-sourceSets.main.resources { srcDir 'src/generated/resources' }
-
-// Sets up a dependency configuration called 'localRuntime'.
-// This configuration should be used instead of 'runtimeOnly' to declare
-// a dependency that will be present for runtime testing but that is
-// "optional", meaning it will not be pulled by dependents of this mod.
 configurations {
-    runtimeClasspath.extendsFrom localRuntime
+    shade
+    implementation.extendsFrom(shade)
+}
+
+configurations.configureEach {
+    resolutionStrategy {
+        force("net.fabricmc:fabric-loader:$fabric_loader_version")
+    }
 }
 
 dependencies {
-    modImplementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
-    modImplementation("net.createmod.ponder:Ponder-Forge-${minecraft_version}:${ponder_version}")
-    modCompileOnly("dev.engine-room.flywheel:flywheel-forge-api-${minecraft_version}:${flywheel_version}")
-    modRuntimeOnly("dev.engine-room.flywheel:flywheel-forge-${minecraft_version}:${flywheel_version}")
-    modImplementation("com.tterrag.registrate:Registrate:${registrate_version}")
-    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
-    implementation("io.github.llamalad7:mixinextras-forge:0.4.1")
+    // Minecraft + Fabric
+    minecraft("com.mojang:minecraft:$minecraft_version")
+    mappings(loom.layered {
+        it.officialMojangMappings { nameSyntheticMembers = false }
+        it.parchment("org.parchmentmc.data:parchment-$minecraft_version:$parchment_version@zip")
+    })
+    modImplementation("net.fabricmc:fabric-loader:$fabric_loader_version")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:$fabric_api_version")
 
-    jarJar(implementation("io.undertow:undertow-core")) {
-        version {
-            strictly '[2.0, 3.0)'
-            prefer '2.3.18.Final'
-        }
-    }
-    additionalRuntimeClasspath "io.undertow:undertow-core"
+    // Create
+    modImplementation("com.simibubi.create:create-fabric:${create_fabric_version}")
 
-    jarJar(implementation("org.jboss.logging:jboss-logging")) {
-        version {
-            strictly '[3.0, 4.0)'
-            prefer '3.4.3.Final'
-        }
-    }
-    additionalRuntimeClasspath "org.jboss.logging:jboss-logging"
+    // Dev Tools
+    modLocalRuntime("com.terraformersmc:modmenu:$modmenu_version")
 
-    jarJar(implementation("org.jboss.threads:jboss-threads")) {
-        version {
-            strictly '[3.0, 4.0)'
-            prefer '3.5.0.Final'
-        }
+    // Recipe Viewer
+    switch (recipe_viewer.toLowerCase(Locale.ROOT)) {
+        case "jei": modLocalRuntime("mezz.jei:jei-$minecraft_version-fabric:$jei_version"); break
+        case "rei": modLocalRuntime("me.shedaniel:RoughlyEnoughItems-fabric:$rei_version"); break
+        case "emi": modLocalRuntime("dev.emi:emi-fabric:$emi_version"); break
+        case "disabled": break
+        default: println("Unknown recipe viewer specified: $recipe_viewer")
     }
-    additionalRuntimeClasspath "org.jboss.threads:jboss-threads"
 
-    jarJar(implementation("org.jboss.xnio:xnio-api")) {
-        version {
-            strictly '[3.0, 4.0)'
-            prefer '3.8.16.Final'
-        }
-    }
-    additionalRuntimeClasspath "org.jboss.xnio:xnio-api"
+    // =========================
+    // SHADED LIBRARIES
+    // =========================
 
-    jarJar(implementation("org.wildfly.common:wildfly-common")) {
-        version {
-            strictly '[1.0, 2.0)'
-            prefer '1.5.4.Final'
-        }
-    }
-    additionalRuntimeClasspath "org.wildfly.common:wildfly-common"
+    // Undertow + Dependencies
+    shade("io.undertow:undertow-core:2.2.24.Final")
+    shade("org.jboss.logging:jboss-logging:3.4.3.Final")
+    shade("org.jboss.threads:jboss-threads:3.5.0.Final")
+    shade("org.jboss.xnio:xnio-api:3.8.16.Final")
+    shade("org.jboss.xnio:xnio-nio:3.8.16.Final")
+    shade("org.wildfly.common:wildfly-common:1.5.4.Final")
+    shade("org.wildfly.client:wildfly-client-config:1.0.1.Final")
 
-    jarJar(implementation("org.wildfly.client:wildfly-client-config")) {
-        version {
-            strictly '[1.0, 2.0)'
-            prefer '1.0.1.Final'
-        }
-    }
-    additionalRuntimeClasspath "org.wildfly.client:wildfly-client-config"
+    // Jackson
+    shade("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    shade("com.fasterxml.jackson.core:jackson-core:2.15.2")
+    shade("com.fasterxml.jackson.core:jackson-annotations:2.15.2")
 
-    jarJar(implementation("org.jboss.xnio:xnio-nio")) {
-        version {
-            strictly '[3.0, 4.0)'
-            prefer '3.8.16.Final'
-        }
-    }
-    additionalRuntimeClasspath "org.jboss.xnio:xnio-nio"
-
-    jarJar(implementation("com.fasterxml.jackson.core:jackson-databind")) {
-        version {
-            strictly '[2.0, 3.0)'
-            prefer '2.20.0' // The version actually used in your dev workspace
-        }
-    }
-    additionalRuntimeClasspath "com.fasterxml.jackson.core:jackson-databind:2.20.0"
-    jarJar(implementation("com.fasterxml.jackson.core:jackson-core")) {
-        version {
-            strictly '[2.0, 3.0)'
-            prefer '2.20.2' // Replace with the actual version in your workspace
-        }
-    }
-    additionalRuntimeClasspath "com.fasterxml.jackson.core:jackson-core"
-
-    jarJar(implementation("com.fasterxml.jackson.core:jackson-annotations")) {
-        version {
-            strictly '[2.0, 3.0)'
-            prefer '2.20.2' // Replace with the actual version in your workspace
-        }
-    }
-    additionalRuntimeClasspath "com.fasterxml.jackson.core:jackson-annotations"
+    shade("org.tomlj:tomlj:1.1.1")
 }
-// This block of code expands all declared replace properties in the specified resource targets.
-// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
-var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
-    var replaceProperties = [
-            minecraft_version      : minecraft_version,
-            minecraft_version_range: minecraft_version_range,
-            neo_version            : neo_version,
-            loader_version_range   : loader_version_range,
-            mod_id                 : mod_id,
-            mod_name               : mod_name,
-            mod_license            : mod_license,
-            mod_version            : mod_version,
-            mod_authors            : mod_authors,
-            mod_description        : mod_description
+
+processResources {
+    Map<String, Object> properties = [
+            "version": version,
+            "fabric_loader_version": fabric_loader_version,
+            "fabric_api_version": fabric_api_version,
+            "create_version": create_fabric_version,
+            "minecraft_version": minecraft_version
     ]
-    inputs.properties replaceProperties
-    expand replaceProperties
-    from "src/main/templates"
-    into "build/generated/sources/modMetadata"
+
+    inputs.properties(properties)
+
+    filesMatching("fabric.mod.json") {
+        expand properties
+    }
 }
 
-// Example configuration to allow publishing using the maven-publish plugin
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
+    withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+}
+
+shadowJar {
+    configurations = [project.configurations.shade]
+    archiveClassifier.set("dev-shadow")
+
+    relocate "io.undertow", "eu.cronmoth.createtrainwebapi.shadow.io.undertow"
+    relocate "org.jboss", "eu.cronmoth.createtrainwebapi.shadow.org.jboss"
+    relocate "com.fasterxml.jackson", "eu.cronmoth.createtrainwebapi.shadow.com.fasterxml.jackson"
+    relocate "org.tomlj", "eu.cronmoth.createtrainwebapi.shadow.org.tomlj"
+}
+
+remapJar {
+    dependsOn shadowJar
+    inputFile.set(shadowJar.archiveFile)
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.archivesBaseName}" }
+    }
+}
+
 publishing {
     publications {
-        register('mavenJava', MavenPublication) {
+        create("mavenJava", MavenPublication) {
             from components.java
         }
     }
@@ -235,22 +146,5 @@ publishing {
         maven {
             url "file://${project.projectDir}/repo"
         }
-        maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
-        maven { url = "https://maven.ithundxr.dev/snapshots" } // Registrate
     }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
-}
-
-// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
-idea {
-    module {
-        downloadSources = true
-        downloadJavadoc = true
-    }
-}
-tasks.withType(Jar).configureEach {
-    zip64 = true
 }

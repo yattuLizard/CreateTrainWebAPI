@@ -1,47 +1,43 @@
 package eu.cronmoth.createtrainwebapi;
 
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.mojang.logging.LogUtils;
+public class CreateTrainWebAPIMod implements ModInitializer {
 
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-
-@Mod(CreateTrainWebAPIMod.MODID)
-public class CreateTrainWebAPIMod {
-
-    public static final String MODID = "createtrainwebapi";
-    public static final Logger LOGGER = LogUtils.getLogger();
+    public static final String ID = "createtrainwebapi";
+    public static final String NAME = "Create Train Web API";
+    public static final Logger LOGGER = LoggerFactory.getLogger(NAME);
 
     private final ApiServer apiServer = new ApiServer();
 
-    public CreateTrainWebAPIMod() {
-        // Register ourselves to the Forge event bus
-        MinecraftForge.EVENT_BUS.register(this);
+    @Override
+    public void onInitialize() {
+        LOGGER.info("Initializing {} in Fabric environment", ID);
 
-        // Register config
-        ModLoadingContext.get().registerConfig(
-                ModConfig.Type.COMMON,
-                Config.SPEC
-        );
-    }
+        // Register server start/stop handlers
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            try {
+                String host = Config.SERVER_HOST;
+                int port = Config.SERVER_PORT;
+                String trainModelPath = Config.TRAIN_MODEL_PATH;
 
-    @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
-        String host = Config.SERVER_HOST.get();
-        int port = Config.SERVER_PORT.get();
-        String trainModelPath = Config.TRAIN_MODEL_PATH.get();
+                LOGGER.info("Starting API server on {}:{} (trainModelPath={})", host, port, trainModelPath);
+                apiServer.start(host, port, trainModelPath);
+            } catch (Exception e) {
+                LOGGER.error("Failed to start API server", e);
+            }
+        });
 
-        apiServer.start(host, port, trainModelPath);
-    }
-
-    @SubscribeEvent
-    public void onServerStopping(ServerStoppingEvent event) {
-        apiServer.stop();
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            try {
+                LOGGER.info("Stopping API server");
+                apiServer.stop();
+            } catch (Exception e) {
+                LOGGER.error("Failed to stop API server", e);
+            }
+        });
     }
 }

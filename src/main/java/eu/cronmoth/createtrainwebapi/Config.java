@@ -1,38 +1,50 @@
 package eu.cronmoth.createtrainwebapi;
 
-import net.minecraft.ResourceLocationException;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.ForgeConfigSpec;
+import org.tomlj.Toml;
+import org.tomlj.TomlParseResult;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 public class Config {
+    public static int SERVER_PORT = 8080;
+    public static String SERVER_HOST = "0.0.0.0";
+    public static String TRAIN_MODEL_PATH = "bluemap/train_models/";
 
-    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    private static final String FILE_NAME = "createtrainwebapi.toml";
 
-    public static final ForgeConfigSpec.IntValue SERVER_PORT = BUILDER
-            .comment("Webserver Port")
-            .defineInRange("serverPort", 8080, 1, 65535);
-
-    public static final ForgeConfigSpec.ConfigValue<String> SERVER_HOST = BUILDER
-            .comment("Webserver hostname")
-            .define("serverHost", "0.0.0.0");
-
-    public static final ForgeConfigSpec.ConfigValue<String> TRAIN_MODEL_PATH = BUILDER
-            .comment("Path of the train models")
-            .define("trainModelPath", "bluemap/train_models/");
-
-    public static final ForgeConfigSpec SPEC = BUILDER.build();
-
-    private static boolean validateItemName(final Object obj) {
-        if (!(obj instanceof String itemName)) {
-            return false;
-        }
-
+    public static void load(Path configDir) {
         try {
-            return BuiltInRegistries.ITEM.containsKey(new ResourceLocation(itemName));
-        } catch (ResourceLocationException e) {
-            return false;
+            if (!Files.exists(configDir)) Files.createDirectories(configDir);
+            Path file = configDir.resolve(FILE_NAME);
+            if (!Files.exists(file)) {
+                String defaultToml = "# Create Train Web API config\n" +
+                        "SERVER_PORT = 8080\n" +
+                        "SERVER_HOST = \"0.0.0.0\"\n" +
+                        "TRAIN_MODEL_PATH = \"bluemap/train_models/\"\n";
+                Files.write(file, defaultToml.getBytes(), StandardOpenOption.CREATE_NEW);
+            }
+
+            String content = Files.readString(file);
+            TomlParseResult result = Toml.parse(content);
+
+            if (result.contains("SERVER_PORT")) {
+                SERVER_PORT = result.getLong("SERVER_PORT").intValue();
+            }
+
+            if (result.contains("SERVER_HOST")) {
+                SERVER_HOST = result.getString("SERVER_HOST");
+            }
+
+            if (result.contains("TRAIN_MODEL_PATH")) {
+                TRAIN_MODEL_PATH = result.getString("TRAIN_MODEL_PATH");
+            }
+
+        } catch (IOException e) {
+            // ignore and keep defaults
+            e.printStackTrace();
         }
     }
-
 }
