@@ -34,6 +34,8 @@ repositories {
 }
 
 configurations {
+    shadow
+    implementation.extendsFrom(shadow)
 }
 
 configurations.configureEach {
@@ -121,12 +123,16 @@ shadowJar {
     relocate "org.jboss", "eu.cronmoth.createtrainwebapi.shadow.org.jboss"
     relocate "com.fasterxml.jackson", "eu.cronmoth.createtrainwebapi.shadow.com.fasterxml.jackson"
     relocate "org.tomlj", "eu.cronmoth.createtrainwebapi.shadow.org.tomlj"
+//    relocate "org.wildfly", "eu.cronmoth.createtrainwebapi.shadow.org.wildfly"
+//    relocate "org.xnio", "eu.cronmoth.createtrainwebapi.shadow.org.xnio"
+//    relocate "org.antlr", "eu.cronmoth.createtrainwebapi.shadow.org.antlr"
+//    relocate "org.checkerframework", "eu.cronmoth.createtrainwebapi.shadow.org.checkerframework"
 }
 
 remapJar {
     dependsOn shadowJar
     mustRunAfter(shadowJar)
-    inputFile = file(shadowJar.archivePath)
+    inputFile.set(shadowJar.archiveFile)
 }
 
 jar {
@@ -147,3 +153,4 @@ publishing {
         }
     }
 }
+
