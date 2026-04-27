@@ -1,20 +1,30 @@
 {
   "schemaVersion": 1,
-  "id": "createtrainwebapi",
+  "id": "modid",
   "version": "${version}",
-  "name": "Create Train Web API",
-  "description": "A web API mod for Create trains.",
-  "authors": ["YourName"],
-  "contact": {},
-  "license": "MIT",
+  "name": "Example Mod",
+  "description": "This is an example description! Tell everyone what your mod is about!",
+  "authors": [
+    "Me!"
+  ],
+  "contact": {
+    "sources": "https://github.com/Fabricators-of-Create/create-fabric-addon-template"
+  },
+  "license": "CC0",
+  "icon": "assets/modid/icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": ["eu.cronmoth.createtrainwebapi.CreateTrainWebAPIMod"]
+    "main": [
+      "eu.cronmoth.createtrainwebapi.CreateTrainWebAPIMod"
+    ]
   },
-  "mixins": ["createtrainwebapi.mixins.json"],
+  "mixins": [
+    "modid.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",
-    "fabric-api": "*",
+    "fabric-api": ">=${fabric_api_version}",
+    "create": ">=${create_version}",
     "minecraft": "${minecraft_version}"
   }
 }

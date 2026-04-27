@@ -1,22 +1,21 @@
 package eu.cronmoth.createtrainwebapi;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.undertow.Undertow;
-import io.undertow.server.HttpHandler;
-import io.undertow.server.HttpServerExchange;
-import io.undertow.server.handlers.PathHandler;
-import io.undertow.server.handlers.resource.FileResourceManager;
-import io.undertow.server.handlers.resource.ResourceHandler;
-import io.undertow.server.handlers.sse.ServerSentEventConnectionCallback;
-import io.undertow.server.handlers.sse.ServerSentEventHandler;
-import io.undertow.util.Headers;
-import io.undertow.util.HttpString;
-
 import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.undertow.Undertow;
+import io.undertow.server.HttpHandler;
+import io.undertow.server.handlers.PathHandler;
+import io.undertow.server.handlers.resource.FileResourceManager;
+import io.undertow.server.handlers.resource.ResourceHandler;
+import io.undertow.server.handlers.sse.ServerSentEventHandler;
+import io.undertow.util.Headers;
+import io.undertow.util.HttpString;
 
 public class ApiServer {
     private Undertow server;

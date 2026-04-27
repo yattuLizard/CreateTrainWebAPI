@@ -1,9 +1,9 @@
 package eu.cronmoth.createtrainwebapi.model;
 
+import java.util.UUID;
+
 import com.simibubi.create.content.trains.graph.TrackGraph;
 import com.simibubi.create.content.trains.station.GlobalStation;
-
-import java.util.UUID;
 
 public class StationData {
     public UUID id;

@@ -1,8 +1,7 @@
 package eu.cronmoth.createtrainwebapi;
+import java.util.Objects;
 
 import com.simibubi.create.content.trains.graph.TrackEdge;
-
-import java.util.Objects;
 
 public class EdgeWrapper {
     public TrackEdge trackEdge;

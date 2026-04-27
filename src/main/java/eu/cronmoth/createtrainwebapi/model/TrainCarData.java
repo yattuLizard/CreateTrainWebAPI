@@ -1,12 +1,10 @@
 package eu.cronmoth.createtrainwebapi.model;
 
-import com.simibubi.create.content.trains.entity.Carriage;
-import com.simibubi.create.content.trains.entity.CarriageContraption;
-import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
-import com.simibubi.create.content.trains.graph.TrackNode;
-import net.minecraft.nbt.CompoundTag;
-
 import java.lang.reflect.Field;
+
+import com.simibubi.create.content.trains.entity.Carriage;
+
+import net.minecraft.nbt.CompoundTag;
 
 public class TrainCarData {
     public int id;

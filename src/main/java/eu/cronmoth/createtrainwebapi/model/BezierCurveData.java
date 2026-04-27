@@ -1,6 +1,7 @@
 package eu.cronmoth.createtrainwebapi.model;
 
 import com.simibubi.create.content.trains.track.BezierConnection;
+
 import net.minecraft.world.phys.Vec3;
 
 public class BezierCurveData {

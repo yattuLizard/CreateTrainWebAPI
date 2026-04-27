@@ -1,12 +1,12 @@
 package eu.cronmoth.createtrainwebapi;
 
-import org.tomlj.Toml;
-import org.tomlj.TomlParseResult;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+
+import org.tomlj.Toml;
+import org.tomlj.TomlParseResult;
 
 public class Config {
     public static int SERVER_PORT = 8080;
