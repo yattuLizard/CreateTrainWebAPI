@@ -115,6 +115,13 @@ jar {
 shadowJar {
 	configurations = [project.configurations.shadow]
 	archiveClassifier.set("dev")
+
+	// relocate shadowed dependencies into a private namespace to avoid conflicts
+	relocate "io.undertow", "eu.cronmoth.createtrainwebapi.shadow.io.undertow"
+	relocate "org.jboss", "eu.cronmoth.createtrainwebapi.shadow.org.jboss"
+	relocate "org.wildfly", "eu.cronmoth.createtrainwebapi.shadow.org.wildfly"
+	relocate "com.fasterxml.jackson", "eu.cronmoth.createtrainwebapi.shadow.com.fasterxml.jackson"
+	relocate "org.tomlj", "eu.cronmoth.createtrainwebapi.shadow.org.tomlj"
 }
 
 remapJar {
