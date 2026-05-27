@@ -10,15 +10,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
+import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.PathHandler;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
+import io.undertow.server.handlers.sse.ServerSentEventConnectionCallback;
 import io.undertow.server.handlers.sse.ServerSentEventHandler;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 
+import java.io.File;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.RejectedExecutionException;
+
 public class ApiServer {
     private Undertow server;
+    private ScheduledExecutorService scheduler;
     private ObjectMapper mapper = new ObjectMapper();
 
     public void start(String host, int port, String trainModelPath) {
@@ -36,7 +46,7 @@ public class ApiServer {
             exchange.getResponseSender().send(mapper.writeValueAsString(TrackInformation.GetNetworkData()));
         });
 
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
+        scheduler = Executors.newScheduledThreadPool(4);
 
         pathHandler.addExactPath("/trainsLive",
                 exchange -> {
@@ -49,6 +59,8 @@ public class ApiServer {
                                         try {
                                             String update = mapper.writeValueAsString(TrackInformation.GetTrainData());
                                             connection.send(update);
+                                        } catch (RejectedExecutionException e) {
+                                            // XNIO worker is shutting down, nothing to do
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
@@ -79,6 +91,11 @@ public class ApiServer {
         server.start();
     }
     public void stop() {
-        server.stop();
+        if (scheduler != null) {
+            scheduler.shutdownNow();
+        }
+        if (server != null) {
+            server.stop();
+        }
     }
 }
