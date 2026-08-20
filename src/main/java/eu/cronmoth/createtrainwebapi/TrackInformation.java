@@ -7,9 +7,7 @@ import com.simibubi.create.content.trains.graph.TrackEdge;
 import com.simibubi.create.content.trains.graph.TrackGraph;
 import com.simibubi.create.content.trains.graph.TrackNode;
 import com.simibubi.create.content.trains.graph.TrackNodeLocation;
-import com.simibubi.create.content.trains.signal.SignalBlock;
 import com.simibubi.create.content.trains.signal.SignalBoundary;
-import com.simibubi.create.content.trains.signal.SignalEdgeGroup;
 import com.simibubi.create.content.trains.signal.TrackEdgePoint;
 import com.simibubi.create.content.trains.station.GlobalStation;
 import eu.cronmoth.createtrainwebapi.model.*;
@@ -24,7 +22,13 @@ public class TrackInformation {
         List<TrainData> data = new ArrayList<>();
         for (UUID uuid : trains.keySet()) {
             Train train = trains.get(uuid);
-            data.add(new TrainData(train));
+            try {
+                data.add(new TrainData(train));
+            } catch (TrainCarData.TrackPositionUnavailableException ignored) {
+                // A carriage can temporarily have no track nodes, for example while
+                // its travelling point is being rebuilt. Skip this train for this
+                // update instead of failing the entire /trains or /trainsLive response.
+            }
         }
         return data;
     }
