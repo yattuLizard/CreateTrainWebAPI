@@ -1,9 +1,6 @@
 package eu.cronmoth.createtrainwebapi.model;
 
 import com.simibubi.create.content.trains.entity.Carriage;
-import com.simibubi.create.content.trains.entity.CarriageContraption;
-import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
-import com.simibubi.create.content.trains.graph.TrackNode;
 import net.minecraft.nbt.CompoundTag;
 
 import java.lang.reflect.Field;
@@ -22,13 +19,23 @@ public class TrainCarData {
 
     public TrainCarData(Carriage carriage) {
         id = carriage.id;
-        positionOnTrack = carriage.getLeadingPoint().position;
-        node1= carriage.getLeadingPoint().node1.getNetId();
-        node2= carriage.getLeadingPoint().node2.getNetId();
 
-        trailingPositionOnTrack = carriage.getTrailingPoint().position;
-        node3= carriage.getTrailingPoint().node1.getNetId();
-        node4= carriage.getTrailingPoint().node2.getNetId();
+        var leadingPoint = carriage.getLeadingPoint();
+        var trailingPoint = carriage.getTrailingPoint();
+
+        if (leadingPoint == null || trailingPoint == null
+                || leadingPoint.node1 == null || leadingPoint.node2 == null
+                || trailingPoint.node1 == null || trailingPoint.node2 == null) {
+            throw new TrackPositionUnavailableException(carriage.id);
+        }
+
+        positionOnTrack = leadingPoint.position;
+        node1 = leadingPoint.node1.getNetId();
+        node2 = leadingPoint.node2.getNetId();
+
+        trailingPositionOnTrack = trailingPoint.position;
+        node3 = trailingPoint.node1.getNetId();
+        node4 = trailingPoint.node2.getNetId();
 
         try {
             Field f = Carriage.class.getDeclaredField("serialisedEntity");
@@ -39,6 +46,11 @@ public class TrainCarData {
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    public static class TrackPositionUnavailableException extends RuntimeException {
+        public TrackPositionUnavailableException(int carriageId) {
+            super("Track position is unavailable for carriage " + carriageId);
+        }
     }
 }
