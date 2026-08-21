@@ -15,9 +15,21 @@ This fork also includes [`bluemap/train.js`](bluemap/train.js), a BlueMap 5.7-co
 
 The overlay reads the railway network from `/network`, receives live train updates from `/trainsLive`, and loads generated train models from `/trainModels/`.
 
+### Optional live train-name markers
+
+[`bluemap/train-labels.js`](bluemap/train-labels.js) adds a third top-level MarkerSet:
+
+- `Create 列車名` — live labels for the trains currently visible in the selected BlueMap world
+
+Each train is represented by a BlueMap `HtmlMarker` that follows the leading carriage position. Opening `Create 列車名` in BlueMap's **Markers** menu shows the individual train names and their current `(X | Y | Z)` coordinates. Clicking an individual train entry moves the map to that train.
+
+The complete train-name MarkerSet can be enabled or disabled independently from `Create 列車`.
+
+Create component strings such as `literal{Express}` are displayed as `Express`.
+
 ### Optional drawing-settings GUI
 
-[`bluemap/train-settings.js`](bluemap/train-settings.js) adds a `Create 描画設定` button to BlueMap's main side menu. Visibility remains controlled by the two MarkerSets above; this GUI only controls depth rendering:
+[`bluemap/train-settings.js`](bluemap/train-settings.js) adds a `Create 描画設定` button to BlueMap's main side menu. Visibility remains controlled by the MarkerSets above; this GUI only controls depth rendering:
 
 - `路線図を地形越しに表示` — show the railway overlay through terrain
 - `列車を地形越しに表示` — show trains through terrain
@@ -38,7 +50,7 @@ window.CREATE_TRAIN_TRAINS_THROUGH_TERRAIN = false;
 
 ### Configure the API URL
 
-`bluemap/train.js` uses `http://localhost:8080` by default. For a remotely hosted BlueMap, define `window.CREATE_TRAIN_WEB_API_URL` before loading `train.js`.
+The BlueMap scripts use `http://localhost:8080` by default. For a remotely hosted BlueMap, define `window.CREATE_TRAIN_WEB_API_URL` before loading them.
 
 For example, create `create-train-config.js` in the BlueMap web root:
 
@@ -54,23 +66,26 @@ Then load the scripts in BlueMap's `webapp.conf`:
 scripts: [
     "create-train-config.js",
     "train.js",
-    "train-settings.js"
+    "train-settings.js",
+    "train-labels.js"
 ]
 ```
 
-`train-settings.js` waits for `train.js` to initialize before installing its render-loop override, so it is tolerant of BlueMap's dynamic script loading.
+`train-settings.js` and `train-labels.js` are optional. `train-labels.js` uses the same `/network` and `/trainsLive` API and maintains its own lightweight live-data connection so it can remain independent from the 3D train renderer.
 
-The overlay removes any trailing `/` from the configured API URL automatically.
+The scripts remove any trailing `/` from the configured API URL automatically.
 
 ### Install the overlay
 
 1. Copy `bluemap/train.js` to the BlueMap web root.
-2. Optionally copy `bluemap/train-settings.js` to the BlueMap web root to enable the drawing-settings GUI.
-3. Add `train.js` and, if used, `train-settings.js` to the `scripts` list in `webapp.conf`.
-4. If the API is not available at `http://localhost:8080`, add a config script as shown above.
-5. Reload BlueMap and hard-refresh the browser.
-6. Open BlueMap's **Markers** menu. `Create 路線図` and `Create 列車` should be available as independent visibility toggles.
-7. If `train-settings.js` is loaded, open the main side menu and use `Create 描画設定` to change through-terrain rendering.
+2. Optionally copy `bluemap/train-settings.js` to enable the drawing-settings GUI.
+3. Optionally copy `bluemap/train-labels.js` to enable live train-name markers.
+4. Add the scripts you copied to the `scripts` list in `webapp.conf`.
+5. If the API is not available at `http://localhost:8080`, add a config script as shown above and load it before the other Create train scripts.
+6. Reload BlueMap and hard-refresh the browser.
+7. Open BlueMap's **Markers** menu. `Create 路線図`, `Create 列車`, and, when enabled, `Create 列車名` are independent visibility toggles.
+8. Open `Create 列車名` to see individual train names and current coordinates; click a train to move the map to it.
+9. If `train-settings.js` is loaded, open the main side menu and use `Create 描画設定` to change through-terrain rendering.
 
 The BlueMap page must be able to reach the configured API URL. If BlueMap and the API use different origins, the API must return appropriate CORS headers. HTTPS BlueMap deployments should also expose the API over HTTPS to avoid mixed-content blocking.
 
