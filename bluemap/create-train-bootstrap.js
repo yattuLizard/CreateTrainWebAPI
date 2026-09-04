@@ -48,6 +48,49 @@
         });
     }
 
+    function installCoreMarkerGuard() {
+        if (window.__createTrainCoreMarkerGuardInstalled) return;
+        window.__createTrainCoreMarkerGuardInstalled = true;
+
+        const ensure = () => {
+            const root = window.bluemap?.mapViewer?.markers;
+            if (!root) return;
+
+            try {
+                // train.js exposes these as global lexical bindings. Reattach the exact
+                // same MarkerSet objects if BlueMap 5.7 removes them while refreshing
+                // markers.json. Keeping the same objects also preserves their visible state.
+                if (typeof routeToggle !== "undefined") {
+                    const existingRoute = root.markerSets?.get("create-rail-network");
+                    if (existingRoute !== routeToggle) {
+                        if (existingRoute) root.remove(existingRoute);
+                        root.add(routeToggle);
+                        console.log("[CreateTrainBootstrap] restored Create 路線図 MarkerSet");
+                    }
+                }
+
+                if (typeof trainToggle !== "undefined") {
+                    const existingTrain = root.markerSets?.get("create-trains");
+                    if (existingTrain !== trainToggle) {
+                        if (existingTrain) root.remove(existingTrain);
+                        root.add(trainToggle);
+                        console.log("[CreateTrainBootstrap] restored Create 列車 MarkerSet");
+                    }
+                }
+
+                // train-labels.js creates this registry when installed. Register the
+                // core sets there too so subsequent marker refreshes preserve all three.
+                root.__createTrainRuntimeMarkerSets?.add?.("create-rail-network");
+                root.__createTrainRuntimeMarkerSets?.add?.("create-trains");
+            } catch (error) {
+                console.debug("[CreateTrainBootstrap] core MarkerSet guard retry", error);
+            }
+        };
+
+        ensure();
+        setInterval(ensure, 500);
+    }
+
     function installTrainLabelDistanceLimit() {
         const HtmlMarker = window.BlueMap?.HtmlMarker;
         if (!HtmlMarker || HtmlMarker.prototype.__createTrainDistanceLimitPatched) return;
@@ -86,6 +129,7 @@
 
             // Core renderer first, then optional UI/features that depend on its globals.
             await loadScript("train.js");
+            installCoreMarkerGuard();
             await loadScript("train-settings.js", { optional: true });
 
             // Train-name HtmlMarkers fade out with BlueMap's normal distance logic.
