@@ -48,6 +48,37 @@
         });
     }
 
+    function installTrainLabelDistanceLimit() {
+        const HtmlMarker = window.BlueMap?.HtmlMarker;
+        if (!HtmlMarker || HtmlMarker.prototype.__createTrainDistanceLimitPatched) return;
+
+        const configured = Number(window.CREATE_TRAIN_LABEL_MAX_DISTANCE ?? 4096);
+        const maxDistance = Number.isFinite(configured) && configured > 0
+            ? configured
+            : 4096;
+
+        const originalUpdateFromData = HtmlMarker.prototype.updateFromData;
+        HtmlMarker.prototype.updateFromData = function (markerData) {
+            if (markerData?.classes?.includes?.("create-train-name-marker")) {
+                markerData = {
+                    ...markerData,
+                    maxDistance,
+                };
+            }
+
+            return originalUpdateFromData.call(this, markerData);
+        };
+
+        Object.defineProperty(HtmlMarker.prototype, "__createTrainDistanceLimitPatched", {
+            configurable: false,
+            enumerable: false,
+            writable: false,
+            value: true,
+        });
+
+        console.log(`[CreateTrainBootstrap] train-name max distance: ${maxDistance}`);
+    }
+
     async function start() {
         try {
             // Environment-specific settings must execute before any integration code.
@@ -56,6 +87,11 @@
             // Core renderer first, then optional UI/features that depend on its globals.
             await loadScript("train.js");
             await loadScript("train-settings.js", { optional: true });
+
+            // Train-name HtmlMarkers fade out with BlueMap's normal distance logic.
+            // The default is fully hidden at 4096 blocks and can be overridden by
+            // window.CREATE_TRAIN_LABEL_MAX_DISTANCE in create-train-config.js.
+            installTrainLabelDistanceLimit();
             await loadScript("train-labels.js", { optional: true });
 
             console.log("[CreateTrainBootstrap] all Create train scripts loaded");
