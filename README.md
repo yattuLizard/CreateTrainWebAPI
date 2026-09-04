@@ -44,6 +44,7 @@ The BlueMap scripts use `http://localhost:8080` by default. For a remotely hoste
 window.CREATE_TRAIN_WEB_API_URL = "https://train-api.example.com";
 window.CREATE_TRAIN_LINES_THROUGH_TERRAIN = true;
 window.CREATE_TRAIN_TRAINS_THROUGH_TERRAIN = false;
+window.CREATE_TRAIN_LABEL_MAX_DISTANCE = 4096;
 ```
 
 Then configure BlueMap 5.7 to load only the bootstrap:
@@ -61,6 +62,8 @@ This avoids relying on BlueMap's unordered custom-script collection.
 `bluemap/train-labels.js` adds `Create 列車名` as an independent MarkerSet. Each visible Create train is represented by a BlueMap `HtmlMarker` that follows the leading carriage position.
 
 Opening `Create 列車名` in BlueMap's **Markers** menu shows each train name and its current `(X | Y | Z)` coordinates. Clicking a train entry moves the map to that train. Create component strings such as `literal{Express}` are displayed as `Express`.
+
+Train-name labels use BlueMap's normal distance fading. By default they are fully hidden at **4096 blocks**, which keeps the map readable when zoomed far out. Override the limit with `window.CREATE_TRAIN_LABEL_MAX_DISTANCE` in `create-train-config.js`.
 
 ### Drawing-settings GUI
 
