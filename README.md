@@ -38,14 +38,22 @@ For that reason, the recommended setup is to load only `create-train-bootstrap.j
 
 ### Configure the API URL
 
-The BlueMap scripts use `http://localhost:8080` by default. For a remotely hosted BlueMap, create `create-train-config.js` in the same web directory as the integration scripts:
+The BlueMap scripts use `http://localhost:8080` by default. For a remotely hosted BlueMap, copy the included example config and customize it for your environment:
+
+```bash
+cp create-train-config.example.js create-train-config.js
+```
+
+The example contains:
 
 ```js
 window.CREATE_TRAIN_WEB_API_URL = "https://train-api.example.com";
+window.CREATE_TRAIN_LABEL_MAX_DISTANCE = 4096;
 window.CREATE_TRAIN_LINES_THROUGH_TERRAIN = true;
 window.CREATE_TRAIN_TRAINS_THROUGH_TERRAIN = false;
-window.CREATE_TRAIN_LABEL_MAX_DISTANCE = 4096;
 ```
+
+`create-train-config.js` is deployment-specific and is ignored by Git. Commit `create-train-config.example.js` instead.
 
 Then configure BlueMap 5.7 to load only the bootstrap:
 
@@ -82,7 +90,7 @@ Settings are stored in browser `localStorage`.
 ### Install the overlay
 
 1. Copy `bluemap/create-train-bootstrap.js`, `bluemap/train.js`, and any optional integration scripts you want to the BlueMap web root.
-2. For a remote API, create `create-train-config.js` in the same directory.
+2. For a remote API, copy `bluemap/create-train-config.example.js` to `create-train-config.js` in the BlueMap web root and customize the API URL.
 3. Set `webapp.conf` to load only `create-train-bootstrap.js`.
 4. Reload BlueMap and hard-refresh the browser.
 5. Open BlueMap's **Markers** menu to control `Create 路線図`, `Create 列車`, and `Create 列車名`.
