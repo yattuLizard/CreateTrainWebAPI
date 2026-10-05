@@ -25,3 +25,6 @@ runs
 run-data
 
 repo
+
+# BlueMap deployment-local config
+bluemap/create-train-config.js
